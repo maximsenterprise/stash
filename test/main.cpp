@@ -1,13 +1,23 @@
 
+#include "convex.hpp"
 #include "flux.hpp"
+#include <cstddef>
+#include <fstream>
 #include <iostream>
 #include <string>
 
 int main() {
-    std::string html = flux::get_html("example.com");
-    std::cout << html << std::endl;
-    std::cout << "----------" << std::endl;
-    std::string response = flux::wait_data("https://httpbin.org/forms/post");
-    std::cout << response << std::endl;
-    return 0;
+    std::string path = "test/test.html";
+    std::ifstream file(path);
+    std::string html;
+    std::string line;
+    while (std::getline(file, line)) {
+        html += line + "\n";
+    }
+    file.close();
+
+    std::vector<convex::HTMLNode> nodes = convex::parse_html(html);
+    for (auto node : nodes) {
+        convex::print_node(node);
+    }
 }
