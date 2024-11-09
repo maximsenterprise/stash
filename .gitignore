@@ -6,3 +6,4 @@ CMakeFiles
 Makefile
 build
 .clang-format
+.cache
