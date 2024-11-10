@@ -1,5 +1,6 @@
 
 #include "utils.hpp"
+#include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -32,6 +33,21 @@ std::vector<std::string> split(const std::string &str, char delim) {
         parts.push_back(part);
     }
     return parts;
+}
+
+void error(const std::string &message) {
+    std::cout << RED << BOLD << "Error: " << RESET << ITALIC << message << RESET
+              << std::endl;
+}
+
+void warning(const std::string &message) {
+    std::cout << YELLOW << BOLD << "Warning: " << RESET << ITALIC << message
+              << RESET << std::endl;
+}
+
+void log(const std::string &emmiter, const std::string &message) {
+    std::cout << GREEN << BOLD << "@" << emmiter << " -> " << RESET << ITALIC
+              << message << RESET << std::endl;
 }
 
 } // namespace stash

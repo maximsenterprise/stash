@@ -17,7 +17,8 @@ int main() {
     file.close();
 
     std::vector<convex::HTMLNode> nodes = convex::parse_html(html);
-    for (auto node : nodes) {
-        convex::print_node(node);
-    }
+    convex::render_to_screen(nodes);
+    // for (auto node : nodes) {
+    //     convex::print_node(node);
+    // }
 }

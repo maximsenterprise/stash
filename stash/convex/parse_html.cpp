@@ -9,20 +9,24 @@
 
 #include "convex.hpp"
 #include "utils.hpp"
+#include <chrono>
 #include <cstddef>
 #include <cstdio>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace convex {
 
 std::vector<HTMLNode> parse_html(const std::string &original_html) {
+    started_render = std::chrono::high_resolution_clock::now();
     std::string html = "";
     for (auto line : stash::split(original_html, '\n')) {
         html += stash::trim(line);
     }
+    std::cout << html << std::endl;
     size_t pos = 0;
     std::vector<HTMLTag> tags;
     while (pos < html.length()) {
@@ -48,11 +52,24 @@ std::vector<HTMLNode> parse_html(const std::string &original_html) {
         }
 
         HTMLTag tag;
+        HTMLTag *raw_tag = nullptr;
         if (tag_name[0] == '/') {
             tag.closes = true;
             tag_name = tag_name.substr(1);
+            if (content != "") {
+                raw_tag = new HTMLTag();
+                raw_tag->name = "rawincrustedtext";
+                raw_tag->value = content;
+                raw_tag->closes = true;
+                content = "";
+            }
         } else {
             tag.closes = false;
+        }
+
+        if (tag_name.ends_with("/")) {
+            tag.closes = true;
+            tag_name = tag_name.substr(0, tag_name.length() - 1);
         }
         if (tag_name.find(" ") != std::string::npos) {
             std::string options = tag_name.substr(tag_name.find(" ") + 1);
@@ -70,53 +87,69 @@ std::vector<HTMLNode> parse_html(const std::string &original_html) {
         tag.name = tag_name;
         pos = next_tag;
         tags.push_back(tag);
+        if (raw_tag != nullptr) {
+            tags.push_back(*raw_tag);
+        }
     }
 
-    std::vector<HTMLTag> open = {};   // For open tags
-    std::vector<HTMLNode> nodes = {}; // For the final nodes
-    std::vector<HTMLNode> carry = {}; // For carrying open tags
-    HTMLTag *temp = nullptr;
+    std::vector<HTMLNode> nodes;
+    std::vector<std::pair<HTMLTag, int>> open;
+    std::vector<std::pair<HTMLNode, int>> carry;
 
-    for (auto &tag : tags) {
-        if (temp != nullptr && temp->name == tag.name && tag.closes) {
-            HTMLNode node;
-            node.tag = tag.name;
-            node.options = temp->options;
-            node.content = temp->value;
-            node.children = {};
-            temp = nullptr;
-            if (open.size() != 0) {
-                carry.push_back(node);
-            } else {
-                nodes.push_back(node);
-            }
-        } else if (temp != nullptr) {
-            open.push_back(*temp);
-            temp = nullptr;
-        }
+    for (int i = 0; i < tags.size(); i++) {
+        HTMLTag tag = tags[i];
+        if (tag.name == "!doctype")
+            continue;
 
-        if (tag.closes) {
+        if (!tag.closes) {
+            // Guardar el tag abierto junto con su índice en `open`
+            open.push_back({tag, i});
+        } else {
+            bool found = false;
             for (int j = open.size() - 1; j >= 0; j--) {
-                if (open[j].name == tag.name) {
+                if (open[j].first.name == tag.name) {
                     HTMLNode node;
-                    node.tag = tag.name;
-                    node.options = open[j].options;
-                    node.content = open[j].value;
-                    node.children = carry;
-                    carry = {};
-                    open.erase(open.begin() + j);
-                    if (open.size() != 0) {
-                        carry.push_back(node);
-                    } else {
-                        nodes.push_back(node);
+                    node.tag = open[j].first.name;
+                    node.options = open[j].first.options;
+                    node.content = open[j].first.value;
+                    node.children = {};
+
+                    // Transferir nodos hijos de carry a este nodo
+                    for (auto it = carry.begin(); it != carry.end();) {
+                        if (it->second > open[j].second && it->second < i) {
+                            node.children.push_back(it->first);
+                            it = carry.erase(it); // Usar iterador para eliminar
+                                                  // sin problema de índice
+                        } else {
+                            ++it;
+                        }
                     }
+
+                    carry.push_back({node, i});
+                    open.erase(open.begin() + j); // Eliminar el tag abierto
+                    found = true;
                     break;
                 }
             }
-        } else {
-            temp = &tag;
+
+            // Manejo de autoClosingTags si no se encontró un tag que cierre
+            if (!found &&
+                autoClosingTags.find(tag.name) != autoClosingTags.end()) {
+                HTMLNode node;
+                node.tag = tag.name;
+                node.options = tag.options;
+                node.content = tag.value;
+                node.children = {};
+                carry.push_back({node, i});
+            }
         }
     }
+    for (auto pair : carry) {
+        nodes.push_back(pair.first);
+    }
+
+    return nodes;
+    std::cout << nodes.size() << std::endl;
     return nodes;
 }
 

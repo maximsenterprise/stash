@@ -10,7 +10,9 @@
 #ifndef CONVEX_HPP
 #define CONVEX_HPP
 
+#include <chrono>
 #include <cstddef>
+#include <ctime>
 #include <string>
 #include <unordered_set>
 #include <utility>
@@ -43,6 +45,9 @@ struct HTMLNode {
 
 void render_html(std::string html);
 
+static std::chrono::time_point started_render =
+    std::chrono::high_resolution_clock::now();
+
 // Parse the HTML string into a vector of HTMLNode objects
 std::vector<HTMLNode> parse_html(const std::string &original_html);
 std::string get_next_tag(const std::string &html, size_t &pos);
@@ -52,14 +57,26 @@ parse_tag(const std::string &options);
 void render_to_screen(std::vector<HTMLNode> nodes);
 
 static std::unordered_set<std::string> autoClosingTags = {
-    "area",  "base", "br",   "col",    "embed", "hr", "img",
-    "input", "link", "meta", "source", "track", "wbr"};
+    "area",  "base", "br",   "col",    "embed", "hr",  "img",
+    "input", "link", "meta", "source", "track", "wbr", "rawincrustedtext"};
 
 // Debugging purposes
 void print_node(HTMLNode node, int indent = 0);
 
+struct HTMLComponent {
+    virtual ~HTMLComponent() = default;
+};
+
+struct TextHTMLComponent : public HTMLComponent {
+    std::string text;
+    std::string font = "Times New Roman";
+    int size;
+    bool bold = false;
+};
+
 #ifdef __APPLE__
-void open_app();
+void open_app(std::vector<HTMLComponent *> nodes);
+void render_text(TextHTMLComponent component);
 #endif
 
 } // namespace convex
