@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.15)
 project(Stash)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -22,16 +22,15 @@ set(SOURCES
 
 if(APPLE)
     # Specify Objective-C++ resources. Mainly for rendering.
-    file(GLOB_RECURSE OBJC_SOURCES "${CMAKE_SOURCE_DIR}/macOS/render/*.mm")
+    file(GLOB_RECURSE OBJCXX_SOURCES "${CMAKE_SOURCE_DIR}/macOS/*.mm")
     
     # Add to executable 
-    list(APPEND SOURCES ${OBJC_SOURCES})
+    list(APPEND SOURCES ${OBJCXX_SOURCES}) 
 
     # Set compiler to Objective-C++ for macOS 
     set_source_files_properties(${OBJC_SOURCES} PROPERTIES
         COMPILE_FLAGS "-x objective-c++"  # Make use of Objective-C++ compiler
     )
-
 endif()
 
 add_executable(stashtest ${SOURCES})
@@ -40,5 +39,6 @@ set_target_properties(stashtest PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BIN
 if(APPLE)
     target_link_libraries(stashtest
         "-framework AppKit"
+        "-framework SwiftUI"
     )
 endif()

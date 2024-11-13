@@ -54,7 +54,7 @@ std::string get_next_tag(const std::string &html, size_t &pos);
 std::string get_text_content(const std::string &html, size_t &pos);
 std::pair<std::string, std::vector<HTMLOption>>
 parse_tag(const std::string &options);
-void render_to_screen(std::vector<HTMLNode> nodes);
+void render_to_screen(std::vector<HTMLNode> nodes_in);
 
 static std::unordered_set<std::string> autoClosingTags = {
     "area",  "base", "br",   "col",    "embed", "hr",  "img",
@@ -73,6 +73,8 @@ struct TextHTMLComponent : public HTMLComponent {
     int size;
     bool bold = false;
 };
+
+std::vector<HTMLComponent *> get_components(const std::vector<HTMLNode> &nodes);
 
 #ifdef __APPLE__
 void open_app(std::vector<HTMLComponent *> nodes);
