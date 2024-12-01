@@ -23,40 +23,53 @@ get_components(const std::vector<HTMLNode> &nodes_in) {
             component->text = node.content;
             component->size = 32;
             component->bold = true;
+            component->type = HTMLType::H1;
             components.push_back(component);
         } else if (node.tag == "h2") {
             auto *component = new TextHTMLComponent;
             component->text = node.content;
             component->size = 24;
             component->bold = true;
+            component->type = HTMLType::H2;
             components.push_back(component);
         } else if (node.tag == "h3") {
             auto *component = new TextHTMLComponent;
             component->text = node.content;
             component->size = 18;
             component->bold = true;
+            component->type = HTMLType::H3;
             components.push_back(component);
         } else if (node.tag == "h4") {
             auto *component = new TextHTMLComponent;
             component->text = node.content;
             component->size = 16;
             component->bold = true;
+            component->type = HTMLType::H4;
             components.push_back(component);
         } else if (node.tag == "h5") {
             auto *component = new TextHTMLComponent;
             component->text = node.content;
             component->size = 14;
             component->bold = true;
+            component->type = HTMLType::H5;
             components.push_back(component);
         } else if (node.tag == "h6") {
             auto *component = new TextHTMLComponent;
             component->text = node.content;
             component->size = 12;
             component->bold = true;
+            component->type = HTMLType::H6;
             components.push_back(component);
         } else if (node.tag == "p") {
+            if (node.children.size() != 0) {
+                auto children = get_components(node.children);
+                components.insert(components.end(), children.begin(),
+                                  children.end());
+                continue;
+            }
             auto *component = new TextHTMLComponent;
             component->text = node.content;
+            component->type = HTMLType::P;
             component->size = 16;
             components.push_back(component);
         } else if (node.tag == "html" || node.tag == "body" ||
@@ -64,6 +77,15 @@ get_components(const std::vector<HTMLNode> &nodes_in) {
             auto child_components = get_components(node.children);
             components.insert(components.end(), child_components.begin(),
                               child_components.end());
+        } else if (node.tag == "a") {
+            auto *component = new AnchorHTMLComponent;
+            component->text = node.content;
+            for (auto option : node.options) {
+                if (option.key == "href") {
+                    component->href = option.value;
+                }
+            }
+            components.push_back(component);
         } else {
             stash::error("Component " + node.tag +
                          " not supported yet by Convex");

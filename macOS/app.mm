@@ -46,13 +46,14 @@ void convex::open_app(std::vector<HTMLComponent *> components) {
                                                    NSWindowStyleMaskResizable)
                                           backing:NSBackingStoreBuffered
                                             defer:NO];
-        [window setTitle:@"Stash"];
+        [window setTitle:@"Stash Alpha 0.0.1 (development build)"];
         [window makeKeyAndOrderFront:nil];
 
         MainApplication::window = window;
         MainApplication::frame = &frame;
         ContainerView *documentView =
             [[ContainerView alloc] initWithFrame:frame];
+
         [documentView setTranslatesAutoresizingMaskIntoConstraints:NO];
 
         NSStackView *stackView = [[NSStackView alloc] init];
@@ -60,7 +61,6 @@ void convex::open_app(std::vector<HTMLComponent *> components) {
         [stackView setAlignment:NSLayoutAttributeLeading];
         [stackView setSpacing:10];
         [stackView setTranslatesAutoresizingMaskIntoConstraints:NO];
-        stackView.edgeInsets = NSEdgeInsetsMake(0, 20, 10, 20);
 
         [documentView addSubview:stackView];
 
@@ -68,6 +68,8 @@ void convex::open_app(std::vector<HTMLComponent *> components) {
         [scrollView setDocumentView:documentView];
         [scrollView setHasVerticalScroller:YES];
         [scrollView setHasHorizontalScroller:NO];
+        scrollView.contentInsets = NSEdgeInsetsMake(10, 20, 10, 30);
+        scrollView.automaticallyAdjustsContentInsets = NO;
         [scrollView
             setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
 
@@ -79,6 +81,9 @@ void convex::open_app(std::vector<HTMLComponent *> components) {
             if (TextHTMLComponent *text =
                     dynamic_cast<TextHTMLComponent *>(component)) {
                 render_text(*text);
+            } else if (AnchorHTMLComponent *anchor =
+                           dynamic_cast<AnchorHTMLComponent *>(component)) {
+                render_anchor(*anchor);
             }
         }
 
@@ -126,6 +131,8 @@ void convex::open_app(std::vector<HTMLComponent *> components) {
                               .active = YES;
                       }
                     }];
+
+        [NSCursor hide];
 
         auto now = std::chrono::high_resolution_clock::now();
         auto elapsed = now - started_render;

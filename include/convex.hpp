@@ -21,6 +21,13 @@ namespace convex {
 
 enum class HTMLType {
     H1,
+    H2,
+    H3,
+    H4,
+    H5,
+    H6,
+    P,
+    A,
 };
 
 struct HTMLOption {
@@ -72,6 +79,16 @@ struct TextHTMLComponent : public HTMLComponent {
     std::string font = "Times New Roman";
     int size;
     bool bold = false;
+    HTMLType type;
+};
+
+struct AnchorHTMLComponent : public HTMLComponent {
+    std::string text;
+    std::string font = "Times New Roman";
+    int size = 16;
+    bool bold = false;
+    HTMLType type = HTMLType::A;
+    std::string href = "";
 };
 
 std::vector<HTMLComponent *> get_components(const std::vector<HTMLNode> &nodes);
@@ -79,6 +96,7 @@ std::vector<HTMLComponent *> get_components(const std::vector<HTMLNode> &nodes);
 #ifdef __APPLE__
 void open_app(std::vector<HTMLComponent *> nodes);
 void render_text(TextHTMLComponent component);
+void render_anchor(AnchorHTMLComponent component);
 #endif
 
 } // namespace convex
